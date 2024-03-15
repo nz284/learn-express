@@ -1,37 +1,26 @@
-const express = require('express');
+const express = require('express')
 const router = express.Router();
-const fs = require('fs');
-const path = require('path');
 
-router.use((req, res, next) => {
-    const usersDataPath = path.resolve(__dirname, '../data/users.json');
-    fs.readFile(usersDataPath, (err, data) => {
-        if (err) {
-            return res.json({
-                error: {message: 'users not found', status: 404}
-            });
-        }
-        req.users = JSON.parse(data);
-        next();
-    });
-});
+router.get('/read/usernames', (req, res) => {
+  let usernames = req.users.map(function(user) {
+    return {id: user.id, username: user.username};
+  });
+  res.send(usernames);
+})
 
-router.get('/usernames', (req, res) => {
-    let usernames = req.users.map(user => {
-        return {id: user.id, username: user.username};
-    });
-    res.json(usernames);
-});
-
-router.get('/username/:name', (req, res) => {
-    const username = req.params.name;
-    const user = req.users.find(u => u.username === username);
-    
-    if (user) {
-        res.json({ email: user.email });
+router.get('/read/usernames', (req, res) => {
+  let response
+  try {
+    let user = req.users.find(user => user.id === req.params.id);
+    if (user.length === 0) {
+      res.send({error: 'User not found'})
     } else {
-        res.status(404).json({ error: {message: 'User not found', status: 404} });
+      res.send(user);
     }
-});
+  } catch (err) {
+    console.log("error ", err)
+    res.send({error: err})
+  }
+})
 
 module.exports = router;
